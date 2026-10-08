@@ -33,6 +33,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+/docs/
+/scripts/
+ERROR MESSAGES.docx
+eslint.config.mjs
+postcss.config.mjs
+tructs dashboard template*
 
 # vercel
 .vercel
@@ -40,3 +46,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local files not included in deployment
+/docs/
+/scripts/
+ERROR MESSAGES.docx
+eslint.config.mjs
+postcss.config.mjs
+tructs dashboard template*
