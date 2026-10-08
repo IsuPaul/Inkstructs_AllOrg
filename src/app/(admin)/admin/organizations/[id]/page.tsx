@@ -9,6 +9,7 @@ import {
 } from "./organization-forms";
 
 async function submitOrganizationStatus(formData: FormData): Promise<void> {
+  "use server";
   await toggleOrganizationStatus(formData);
 }
 

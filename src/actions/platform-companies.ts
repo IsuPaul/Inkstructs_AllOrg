@@ -90,7 +90,12 @@ export async function deployPlatformCompany(formData: FormData) {
     const deployResponse = await fetch(`https://api.vercel.com/v13/deployments${query}`, { method: "POST", headers, body: JSON.stringify({ name: company.slug, project: projectId, target: "production", gitSource: { type: "github", repo: env.vercelGitRepo().split("/").pop(), ref: env.vercelGitBranch(), org: env.vercelGitRepo().split("/")[0] } }), cache: "no-store" });
     const deployment = await deployResponse.json() as { id?: string; url?: string; error?: { message?: string } };
     if (!deployResponse.ok) throw new Error(deployment.error?.message || `Vercel deployment failed (${deployResponse.status}).`);
-    await admin.from("platform_companies").update({ vercel_project_id: projectId, vercel_deployment_id: deployment.id, vercel_deployment_url: deployment.url ? `https://${deployment.url}` : null, deployment_url: deployment.url ? `https://${deployment.url}` : null, status: "ready", provisioning_notes: "Vercel deployment started. Customer migrations and administrator setup are still pending.", updated_at: new Date().toISOString() }).eq("id", id);
+    const deploymentUrl = deployment.url ? (deployment.url.startsWith("http") ? deployment.url : `https://${deployment.url}`) : null;
+    if (!deploymentUrl) throw new Error("Vercel deployment returned no deployment URL.");
+    const authResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/config/auth`, { method: "PATCH", headers: { Authorization: `Bearer ${env.supabaseManagementToken()}`, "Content-Type": "application/json" }, body: JSON.stringify({ site_url: deploymentUrl, additional_redirect_urls: [`${deploymentUrl}/**`] }), cache: "no-store" });
+    const authPayload = await authResponse.json().catch(() => null) as { message?: string } | null;
+    if (!authResponse.ok) throw new Error(authPayload?.message || `Supabase Auth configuration failed (${authResponse.status}).`);
+    await admin.from("platform_companies").update({ vercel_project_id: projectId, vercel_deployment_id: deployment.id, vercel_deployment_url: deploymentUrl, deployment_url: deploymentUrl, status: "ready", provisioning_notes: "Vercel deployment started and Supabase Auth Site URL was updated. Customer migrations and administrator setup are still pending.", updated_at: new Date().toISOString() }).eq("id", id);
     revalidatePath("/admin/platform/companies");
     return { success: true };
   } catch (caught) {
