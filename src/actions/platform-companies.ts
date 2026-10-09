@@ -89,9 +89,11 @@ export async function deployPlatformCompany(formData: FormData) {
     const envResponse = await fetch(`https://api.vercel.com/v10/projects/${encodeURIComponent(projectId)}/env${query ? `${query}&upsert=true` : "?upsert=true"}`, { method: "POST", headers, body: JSON.stringify([{ key: "NEXT_PUBLIC_SUPABASE_URL", value: `https://${company.supabase_project_ref}.supabase.co`, type: "plain", target: ["production", "preview"] }, { key: "NEXT_PUBLIC_SUPABASE_ANON_KEY", value: anonKey, type: "encrypted", target: ["production", "preview"] }]), cache: "no-store" });
     if (!envResponse.ok) throw new Error(`Vercel environment setup failed (${envResponse.status}).`);
     const deployResponse = await fetch(`https://api.vercel.com/v13/deployments${query}`, { method: "POST", headers, body: JSON.stringify({ name: company.slug, project: projectId, target: "production", gitSource: { type: "github", repo: env.vercelGitRepo().split("/").pop(), ref: env.vercelGitBranch(), org: env.vercelGitRepo().split("/")[0] } }), cache: "no-store" });
-    const deployment = await deployResponse.json() as { id?: string; url?: string; error?: { message?: string } };
+    const deployment = await deployResponse.json() as { id?: string; url?: string; alias?: string[]; error?: { message?: string } };
     if (!deployResponse.ok) throw new Error(deployment.error?.message || `Vercel deployment failed (${deployResponse.status}).`);
-    const deploymentUrl = deployment.url ? (deployment.url.startsWith("http") ? deployment.url : `https://${deployment.url}`) : null;
+    const stableAlias = deployment.alias?.find((alias) => alias.endsWith(".vercel.app")) || deployment.alias?.[0];
+    const deploymentHost = stableAlias || deployment.url;
+    const deploymentUrl = deploymentHost ? (deploymentHost.startsWith("http") ? deploymentHost : `https://${deploymentHost}`) : null;
     if (!deploymentUrl) throw new Error("Vercel deployment returned no deployment URL.");
     const authRedirects = `${deploymentUrl}/auth/accept-invite,${deploymentUrl}/auth/confirm,${deploymentUrl}/auth/reset-password,${deploymentUrl}/**`;
     const authResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/config/auth`, { method: "PATCH", headers: { Authorization: `Bearer ${env.supabaseManagementToken()}`, "Content-Type": "application/json" }, body: JSON.stringify({ site_url: deploymentUrl, uri_allow_list: authRedirects }), cache: "no-store" });
@@ -175,7 +177,8 @@ export async function syncPlatformCompanyAuthUrl(formData: FormData) {
   const admin = createAdminClient();
   const { data: company, error } = await admin.from("platform_companies").select("id, supabase_project_ref, vercel_deployment_url, deployment_url").eq("id", id).single();
   if (error || !company) return { error: error?.message || "Company was not found." };
-  const siteUrl = company.vercel_deployment_url || company.deployment_url;
+  const requestedUrl = String(formData.get("site_url") || "").trim();
+  const siteUrl = (requestedUrl || company.vercel_deployment_url || company.deployment_url || "").replace(/\/$/, "");
   if (!company.supabase_project_ref || !siteUrl) return { error: "The company needs a Supabase project and Vercel deployment URL first." };
   const authRedirects = `${siteUrl}/auth/accept-invite,${siteUrl}/auth/confirm,${siteUrl}/auth/reset-password,${siteUrl}/**`;
   const response = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/config/auth`, { method: "PATCH", headers: { Authorization: `Bearer ${env.supabaseManagementToken()}`, "Content-Type": "application/json" }, body: JSON.stringify({ site_url: siteUrl, uri_allow_list: authRedirects }), cache: "no-store" });

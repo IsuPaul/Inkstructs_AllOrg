@@ -172,6 +172,13 @@ export default async function PlatformCompaniesPage() {
 
                     <form action={submitSyncAuthUrl}>
                       <input type="hidden" name="id" value={company.id} />
+                      <input
+                        type="url"
+                        name="site_url"
+                        defaultValue={company.vercel_deployment_url || company.deployment_url || ""}
+                        placeholder="https://customer.vercel.app"
+                        className="min-w-[230px] flex-1 rounded border bg-background px-3 py-2 text-xs"
+                      />
                       <button
                         type="submit"
                         disabled={!company.supabase_project_ref || !company.vercel_deployment_url}
