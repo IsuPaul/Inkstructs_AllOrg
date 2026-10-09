@@ -23,7 +23,7 @@ export function SiteFooter() {
         <div><strong>Workspace</strong><Link href="/login">Sign in</Link><Link href="/forgot-password">Reset password</Link></div>
         <div><strong>Need help?</strong><span>Contact your organization administrator.</span></div>
       </div>
-      <div className="marketing-container footer-bottom"><span>© {new Date().getFullYear()} Inkstructs Limited</span><span>Built for curious minds.</span></div>
+      <div className="marketing-container footer-bottom"><span>© {new Date().getFullYear()} {deploymentConfig.name}</span><span>Built for curious minds.</span></div>
     </footer>
   );
 }

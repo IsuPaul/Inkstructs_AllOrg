@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_HOME, type UserRole } from "@/lib/types";
+import { deploymentConfig } from "@/lib/deployment-config";
 
 export async function login(_prevState: { error?: string } | undefined, formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
@@ -15,7 +16,7 @@ export async function login(_prevState: { error?: string } | undefined, formData
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
-    return { error: "That email and password don't match an Inkstructs account." };
+    return { error: `That email and password don't match a ${deploymentConfig.name} account.` };
   }
 
   const { data: profile } = await supabase

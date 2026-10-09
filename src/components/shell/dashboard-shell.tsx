@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Sidebar, type NavItem } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 
-const STORAGE_KEY = "inkstructs-sidebar-collapsed";
+const STORAGE_KEY = "customer-dashboard-sidebar-collapsed";
 
 export function DashboardShell({
   items,

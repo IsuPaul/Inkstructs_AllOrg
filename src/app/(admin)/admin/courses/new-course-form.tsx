@@ -11,7 +11,7 @@ export function NewCourseForm() {
   return (
     <form action={formAction} className="grid gap-4 sm:grid-cols-2">
       <Field label="Course title" htmlFor="title">
-        <Input id="title" name="title" required placeholder="Python Programming" />
+        <Input id="title" name="title" required placeholder="Enter course title" />
       </Field>
       <Field label="Weeks" htmlFor="duration_weeks">
         <Input id="duration_weeks" name="duration_weeks" type="number" min={1} defaultValue={8} required />

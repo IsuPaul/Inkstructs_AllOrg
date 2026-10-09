@@ -33,11 +33,10 @@ export function AuthShell({
 
         <div className="relative z-10">
           <p className="font-display text-3xl leading-tight text-paper-50">
-            Instructor-led training, one week at a time.
+            A focused learning workspace for your organization.
           </p>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink-300">
-            Website development, AI &amp; automation, and Python programming — with a clear weekly path
-            to a certificate.
+            Access your courses, assignments, progress, and certificates in one place.
           </p>
         </div>
 

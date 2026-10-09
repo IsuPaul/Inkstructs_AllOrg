@@ -5,7 +5,7 @@ import { deploymentConfig } from "@/lib/deployment-config";
 
 export const metadata: Metadata = {
   title: deploymentConfig.name,
-  description: "Instructor-led training in web development, AI & automation, and Python.",
+  description: `${deploymentConfig.name} learning dashboard.`,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -21,7 +21,7 @@ export function ForgotPasswordForm() {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       });
       // Always show success, even on error — this avoids confirming or
-      // denying whether an email address has an Inkstructs account.
+      // denying whether an email address has an account.
       if (error) console.error(error);
       setSent(true);
     });
@@ -32,7 +32,7 @@ export function ForgotPasswordForm() {
       <div className="rounded-[var(--radius-md)] border border-border bg-surface p-5">
         <p className="text-sm text-foreground">Check your email</p>
         <p className="mt-1 text-sm text-muted">
-          If that address has an Inkstructs account, a reset link is on its way.
+          If that address has an account, a reset link is on its way.
         </p>
       </div>
     );
