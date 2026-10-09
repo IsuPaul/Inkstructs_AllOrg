@@ -58,6 +58,7 @@
   --shadow-lg: 0 24px 48px -16px rgba(14, 16, 36, 0.32), 0 4px 12px -4px rgba(14, 16, 36, 0.12);
   --ring: 0 0 0 3px rgba(232, 163, 61, 0.28);
 }
+:root { --accent: var(--tenant-accent, var(--amber-500)); }
 
 .empty-courses{grid-column:1/-1;border:1px dashed var(--border-strong);border-radius:16px;padding:55px 30px;text-align:center}.empty-courses h2{color:var(--ink-950);margin:0 0 10px}.empty-courses p{color:var(--ink-500);margin:0 auto 24px;max-width:480px;line-height:1.6}
 

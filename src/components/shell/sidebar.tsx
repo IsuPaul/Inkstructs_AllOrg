@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronsLeft, ChevronsRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ICONS, type NavIconName } from "./nav-icons";
+import { deploymentConfig } from "@/lib/deployment-config";
 
 export type NavItem = {
   href: string;
@@ -44,12 +45,10 @@ export function Sidebar({
       }}
     >
       <div className={cn("flex h-16 items-center gap-2.5", collapsed ? "justify-center px-0" : "px-5")}>
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] bg-accent text-sm font-bold text-ink-950">
-          I
-        </span>
+        {deploymentConfig.logoUrl ? <img src={deploymentConfig.logoUrl} alt="" className="h-7 w-7 shrink-0 rounded-[7px] object-cover" /> : <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] bg-accent text-sm font-bold text-ink-950">I</span>}
         {!collapsed && (
           <>
-            <span className="text-[17px] font-bold tracking-tight text-paper-50">Inkstructs</span>
+            <span className="max-w-[145px] truncate text-[17px] font-bold tracking-tight text-paper-50">{deploymentConfig.name}</span>
             <span className="ml-auto rounded-full bg-white/[0.06] px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide text-ink-300">
               {portalLabel}
             </span>

@@ -5,6 +5,7 @@ import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TrendChart } from "@/components/admin/trend-chart";
 import { createClient } from "@/lib/supabase/server";
+import { deploymentConfig } from "@/lib/deployment-config";
 
 const WEEKS_BACK = 10;
 
@@ -67,7 +68,7 @@ export default async function AdminOverview() {
 
   return (
     <>
-      <TopBar title="Overview" subtitle="A snapshot of Inkstructs right now" />
+      <TopBar title="Overview" subtitle={`A snapshot of ${deploymentConfig.name} right now`} />
       <div className="p-5 sm:p-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard

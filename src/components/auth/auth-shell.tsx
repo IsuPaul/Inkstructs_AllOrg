@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { deploymentConfig } from "@/lib/deployment-config";
 
 export function AuthShell({
   title,
@@ -27,7 +28,7 @@ export function AuthShell({
           <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-accent font-display text-base font-semibold text-ink-950">
             I
           </span>
-          <span className="font-display text-xl text-paper-50">Inkstructs</span>
+          <span className="font-display text-xl text-paper-50">{deploymentConfig.name}</span>
         </Link>
 
         <div className="relative z-10">
@@ -40,7 +41,7 @@ export function AuthShell({
           </p>
         </div>
 
-        <p className="relative z-10 text-xs text-ink-500">© {new Date().getFullYear()} Inkstructs</p>
+        <p className="relative z-10 text-xs text-ink-500">© {new Date().getFullYear()} {deploymentConfig.name}</p>
       </div>
 
       <div className="flex flex-1 items-center justify-center bg-background px-4 py-16 sm:px-8">
@@ -49,7 +50,7 @@ export function AuthShell({
             <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-ink-900 font-display text-sm font-semibold text-paper-50">
               I
             </span>
-            <span className="font-display text-lg text-foreground">Inkstructs</span>
+            <span className="font-display text-lg text-foreground">{deploymentConfig.name}</span>
           </Link>
 
           <h1 className="font-display text-2xl text-foreground">{title}</h1>
