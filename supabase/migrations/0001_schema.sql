@@ -5,7 +5,10 @@ create extension if not exists "pgcrypto";
 
 -- ========== Identity ==========
 
-create type user_role as enum ('admin', 'instructor', 'student');
+do $$ begin
+  create type user_role as enum ('admin', 'instructor', 'student');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
@@ -20,7 +23,10 @@ create table if not exists profiles (
 
 -- ========== Admissions ==========
 
-create type application_status as enum ('pending', 'accepted', 'rejected', 'enrolled');
+do $$ begin
+  create type application_status as enum ('pending', 'accepted', 'rejected', 'enrolled');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists applications (
   id uuid primary key default gen_random_uuid(),
@@ -38,7 +44,10 @@ create table if not exists applications (
 
 -- ========== Content (reusable) ==========
 
-create type drip_mode as enum ('none', 'by_date', 'by_completion');
+do $$ begin
+  create type drip_mode as enum ('none', 'by_date', 'by_completion');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists courses (
   id uuid primary key default gen_random_uuid(),
@@ -76,7 +85,10 @@ create table if not exists modules (
   is_required boolean not null default true
 );
 
-create type lesson_type as enum ('video', 'document', 'image', 'text', 'link', 'assignment', 'live');
+do $$ begin
+  create type lesson_type as enum ('video', 'document', 'image', 'text', 'link', 'assignment', 'live');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists lessons (
   id uuid primary key default gen_random_uuid(),
@@ -91,7 +103,10 @@ create table if not exists lessons (
   created_at timestamptz not null default now()
 );
 
-create type video_source as enum ('mux', 'external_link');
+do $$ begin
+  create type video_source as enum ('mux', 'external_link');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists assets (
   id uuid primary key default gen_random_uuid(),
@@ -109,7 +124,10 @@ create table if not exists assets (
 
 -- ========== Delivery ==========
 
-create type cohort_status as enum ('draft', 'open', 'running', 'completed');
+do $$ begin
+  create type cohort_status as enum ('draft', 'open', 'running', 'completed');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists cohorts (
   id uuid primary key default gen_random_uuid(),
@@ -131,7 +149,10 @@ do $$ begin
 exception when duplicate_object then null;
 end $$;
 
-create type instructor_cohort_role as enum ('lead', 'assistant');
+do $$ begin
+  create type instructor_cohort_role as enum ('lead', 'assistant');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists cohort_instructors (
   cohort_id uuid not null references cohorts(id) on delete cascade,
@@ -140,7 +161,10 @@ create table if not exists cohort_instructors (
   primary key (cohort_id, instructor_id)
 );
 
-create type enrollment_status as enum ('pending_payment', 'invited', 'active', 'completed', 'paused', 'refunded');
+do $$ begin
+  create type enrollment_status as enum ('pending_payment', 'invited', 'active', 'completed', 'paused', 'refunded');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists enrollments (
   id uuid primary key default gen_random_uuid(),
@@ -166,7 +190,10 @@ create table if not exists live_sessions (
 
 -- ========== Progress ==========
 
-create type progress_status as enum ('not_started', 'in_progress', 'complete');
+do $$ begin
+  create type progress_status as enum ('not_started', 'in_progress', 'complete');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists lesson_progress (
   id uuid primary key default gen_random_uuid(),
@@ -187,7 +214,10 @@ create table if not exists module_progress (
 
 -- ========== Assessment ==========
 
-create type submission_status as enum ('submitted', 'graded', 'resubmit');
+do $$ begin
+  create type submission_status as enum ('submitted', 'graded', 'resubmit');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists submissions (
   id uuid primary key default gen_random_uuid(),
@@ -205,7 +235,10 @@ create table if not exists submissions (
 
 -- ========== Payments (Paystack, NGN, full payment) ==========
 
-create type payment_status as enum ('pending', 'paid', 'failed', 'refunded');
+do $$ begin
+  create type payment_status as enum ('pending', 'paid', 'failed', 'refunded');
+exception when duplicate_object then null;
+end $$;
 
 create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
