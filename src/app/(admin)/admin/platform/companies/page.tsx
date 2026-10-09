@@ -1,5 +1,6 @@
 import {
   deployPlatformCompany,
+  initializePlatformCompany,
   provisionPlatformCompany,
   updatePlatformCompanyStatus,
 } from "@/actions/platform-companies";
@@ -22,6 +23,12 @@ async function submitCompanyStatus(formData: FormData): Promise<void> {
   "use server";
 
   await updatePlatformCompanyStatus(formData);
+}
+
+async function submitInitializeCompany(formData: FormData): Promise<void> {
+  "use server";
+
+  await initializePlatformCompany(formData);
 }
 
 export default async function PlatformCompaniesPage() {
@@ -153,6 +160,17 @@ export default async function PlatformCompaniesPage() {
                         className="rounded bg-blue-600 px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Deploy to Vercel
+                      </button>
+                    </form>
+
+                    <form action={submitInitializeCompany}>
+                      <input type="hidden" name="id" value={company.id} />
+                      <button
+                        type="submit"
+                        disabled={!company.supabase_project_ref || !company.vercel_deployment_url}
+                        className="rounded bg-emerald-600 px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Initialize customer
                       </button>
                     </form>
 

@@ -5,6 +5,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
 import { env } from "@/lib/env";
 import crypto from "node:crypto";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { createClient } from "@supabase/supabase-js";
 
 export async function createPlatformCompany(_previousState: { error?: string; success?: boolean } | undefined, formData: FormData) {
   const profile = await requireProfile();
@@ -100,6 +103,54 @@ export async function deployPlatformCompany(formData: FormData) {
     return { success: true };
   } catch (caught) {
     const message = caught instanceof Error ? caught.message : "Vercel deployment failed.";
+    await admin.from("platform_companies").update({ status: "failed", provisioning_notes: message, updated_at: new Date().toISOString() }).eq("id", id);
+    revalidatePath("/admin/platform/companies");
+    return { error: message };
+  }
+}
+
+export async function initializePlatformCompany(formData: FormData) {
+  const profile = await requireProfile();
+  if (profile.role !== "admin") return { error: "Only platform administrators can initialize companies." };
+  const id = String(formData.get("id") || "");
+  const admin = createAdminClient();
+  const { data: company, error } = await admin.from("platform_companies").select("id, name, slug, admin_email, supabase_project_ref, deployment_url").eq("id", id).single();
+  if (error || !company) return { error: error?.message || "Company was not found." };
+  if (!company.supabase_project_ref) return { error: "Create the Supabase project before initialization." };
+  try {
+    const managementToken = env.supabaseManagementToken();
+    const headers = { Authorization: `Bearer ${managementToken}`, "Content-Type": "application/json" };
+    let healthy = false;
+    for (let attempt = 0; attempt < 12; attempt += 1) {
+      const healthResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/health`, { headers: { Authorization: `Bearer ${managementToken}` }, cache: "no-store" });
+      if (healthResponse.ok) {
+        const health = await healthResponse.json().catch(() => null) as { services?: Array<{ name?: string; status?: string }> } | null;
+        healthy = !health?.services || health.services.every((service) => !service.status || service.status.includes("HEALTHY") || service.status === "ACTIVE");
+        if (healthy) break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+    if (!healthy) throw new Error("The Supabase project is not healthy yet. Try initialization again shortly.");
+    const migrationsDir = path.join(process.cwd(), "supabase", "migrations");
+    const migrationFiles = (await fs.readdir(migrationsDir)).filter((file) => /^00(0[1-9]|1[01])_.+\.sql$/.test(file)).sort();
+    for (const file of migrationFiles) {
+      const query = await fs.readFile(path.join(migrationsDir, file), "utf8");
+      const migrationResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/database/migrations`, { method: "POST", headers, body: JSON.stringify({ name: file.replace(/\.sql$/, ""), query }), cache: "no-store" });
+      const migrationPayload = await migrationResponse.json().catch(() => null) as { message?: string } | null;
+      if (!migrationResponse.ok) throw new Error(`Migration ${file} failed: ${migrationPayload?.message || `HTTP ${migrationResponse.status}`}`);
+    }
+    const keysResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/api-keys?reveal=true`, { headers: { Authorization: `Bearer ${managementToken}` }, cache: "no-store" });
+    const keys = await keysResponse.json().catch(() => null) as Array<{ name?: string; type?: string; api_key?: string; key?: string }> | null;
+    const secretKey = keys?.find((key) => key.type === "secret" || key.name === "service_role")?.api_key || keys?.find((key) => key.type === "secret" || key.name === "service_role")?.key;
+    if (!keysResponse.ok || !secretKey) throw new Error("Could not retrieve a server key for the customer project.");
+    const customer = createClient(`https://${company.supabase_project_ref}.supabase.co`, secretKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const invite = await customer.auth.admin.inviteUserByEmail(company.admin_email, { data: { full_name: company.name, role: "admin" }, redirectTo: `${company.deployment_url || env.siteUrl()}/auth/accept-invite` });
+    if (invite.error && !invite.error.message.toLowerCase().includes("already registered")) throw new Error(`Administrator invitation failed: ${invite.error.message}`);
+    await admin.from("platform_companies").update({ status: "ready", provisioning_notes: "Customer migrations applied and administrator invitation sent.", updated_at: new Date().toISOString() }).eq("id", id);
+    revalidatePath("/admin/platform/companies");
+    return { success: true };
+  } catch (caught) {
+    const message = caught instanceof Error ? caught.message : "Customer initialization failed.";
     await admin.from("platform_companies").update({ status: "failed", provisioning_notes: message, updated_at: new Date().toISOString() }).eq("id", id);
     revalidatePath("/admin/platform/companies");
     return { error: message };
