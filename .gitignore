@@ -37,7 +37,6 @@ yarn-error.log*
 /scripts/
 ERROR MESSAGES.docx
 eslint.config.mjs
-postcss.config.mjs
 tructs dashboard template*
 
 # vercel
@@ -52,5 +51,4 @@ next-env.d.ts
 /scripts/
 ERROR MESSAGES.docx
 eslint.config.mjs
-postcss.config.mjs
 tructs dashboard template*
