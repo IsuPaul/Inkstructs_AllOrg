@@ -93,7 +93,8 @@ export async function deployPlatformCompany(formData: FormData) {
     if (!deployResponse.ok) throw new Error(deployment.error?.message || `Vercel deployment failed (${deployResponse.status}).`);
     const deploymentUrl = deployment.url ? (deployment.url.startsWith("http") ? deployment.url : `https://${deployment.url}`) : null;
     if (!deploymentUrl) throw new Error("Vercel deployment returned no deployment URL.");
-    const authResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/config/auth`, { method: "PATCH", headers: { Authorization: `Bearer ${env.supabaseManagementToken()}`, "Content-Type": "application/json" }, body: JSON.stringify({ site_url: deploymentUrl, additional_redirect_urls: [`${deploymentUrl}/**`] }), cache: "no-store" });
+    const authRedirects = `${deploymentUrl}/auth/accept-invite,${deploymentUrl}/auth/confirm,${deploymentUrl}/auth/reset-password,${deploymentUrl}/**`;
+    const authResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/config/auth`, { method: "PATCH", headers: { Authorization: `Bearer ${env.supabaseManagementToken()}`, "Content-Type": "application/json" }, body: JSON.stringify({ site_url: deploymentUrl, uri_allow_list: authRedirects }), cache: "no-store" });
     const authPayload = await authResponse.json().catch(() => null) as { message?: string } | null;
     if (!authResponse.ok) throw new Error(authPayload?.message || `Supabase Auth configuration failed (${authResponse.status}).`);
     await admin.from("platform_companies").update({ vercel_project_id: projectId, vercel_deployment_id: deployment.id, vercel_deployment_url: deploymentUrl, deployment_url: deploymentUrl, status: "ready", provisioning_notes: "Vercel deployment started and Supabase Auth Site URL was updated. Customer migrations and administrator setup are still pending.", updated_at: new Date().toISOString() }).eq("id", id);
@@ -176,7 +177,8 @@ export async function syncPlatformCompanyAuthUrl(formData: FormData) {
   if (error || !company) return { error: error?.message || "Company was not found." };
   const siteUrl = company.vercel_deployment_url || company.deployment_url;
   if (!company.supabase_project_ref || !siteUrl) return { error: "The company needs a Supabase project and Vercel deployment URL first." };
-  const response = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/config/auth`, { method: "PATCH", headers: { Authorization: `Bearer ${env.supabaseManagementToken()}`, "Content-Type": "application/json" }, body: JSON.stringify({ site_url: siteUrl, additional_redirect_urls: [`${siteUrl}/**`] }), cache: "no-store" });
+  const authRedirects = `${siteUrl}/auth/accept-invite,${siteUrl}/auth/confirm,${siteUrl}/auth/reset-password,${siteUrl}/**`;
+  const response = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/config/auth`, { method: "PATCH", headers: { Authorization: `Bearer ${env.supabaseManagementToken()}`, "Content-Type": "application/json" }, body: JSON.stringify({ site_url: siteUrl, uri_allow_list: authRedirects }), cache: "no-store" });
   const payload = await response.json().catch(() => null) as { message?: string } | null;
   if (!response.ok) return { error: payload?.message || `Supabase Auth configuration failed (${response.status}).` };
   await admin.from("platform_companies").update({ provisioning_notes: `Supabase Auth Site URL synchronized to ${siteUrl}.`, updated_at: new Date().toISOString() }).eq("id", id);
