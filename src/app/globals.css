@@ -137,6 +137,21 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* The customer landing page is intentionally a single viewport. */
+.customer-landing { height: calc(100dvh - 76px); overflow: hidden; }
+.customer-landing .home-hero { height: 100%; min-height: 0; padding: 28px 0; border-bottom: 0; }
+.customer-landing .hero-grid { height: 100%; gap: 48px; }
+.customer-landing .hero-slideshow { min-height: 0; height: min(62vh, 470px); }
+.customer-landing .floating-note { bottom: 18px; }
+@media (max-width: 760px) {
+  .customer-landing { height: calc(100dvh - 68px); }
+  .customer-landing .home-hero { padding: 24px 0; overflow: hidden; }
+  .customer-landing .hero-grid { gap: 18px; }
+  .customer-landing .hero-visual { min-height: 0; height: 38vh; }
+  .customer-landing .hero-slideshow { min-height: 0; height: 100%; }
+  .customer-landing .hero-proof { margin-top: 18px; gap: 10px; }
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) body {
     background-image:

@@ -9,9 +9,8 @@ export function SiteHeader() {
         <Link href="/" className="brand" aria-label={`${deploymentConfig.name} home`}>
           <span className="brand-mark">I</span><span>{deploymentConfig.name}</span>
         </Link>
-        <nav className="marketing-nav" aria-label="Main navigation"><Link href="/login">Dashboard login</Link></nav>
+        <nav className="marketing-nav" aria-label="Main navigation"><span>Learning workspace</span></nav>
         <div className="header-actions">
-          <Link href="/login" className="nav-login">Sign in</Link>
           <Link href="/login" className="button button-small">Sign in</Link>
         </div>
         <MobileMenu />
