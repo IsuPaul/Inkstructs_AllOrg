@@ -1,6 +1,7 @@
 import {
   deployPlatformCompany,
   initializePlatformCompany,
+  syncPlatformCompanyAuthUrl,
   provisionPlatformCompany,
   updatePlatformCompanyStatus,
 } from "@/actions/platform-companies";
@@ -29,6 +30,12 @@ async function submitInitializeCompany(formData: FormData): Promise<void> {
   "use server";
 
   await initializePlatformCompany(formData);
+}
+
+async function submitSyncAuthUrl(formData: FormData): Promise<void> {
+  "use server";
+
+  await syncPlatformCompanyAuthUrl(formData);
 }
 
 export default async function PlatformCompaniesPage() {
@@ -171,6 +178,17 @@ export default async function PlatformCompaniesPage() {
                         className="rounded bg-emerald-600 px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Initialize customer
+                      </button>
+                    </form>
+
+                    <form action={submitSyncAuthUrl}>
+                      <input type="hidden" name="id" value={company.id} />
+                      <button
+                        type="submit"
+                        disabled={!company.supabase_project_ref || !company.vercel_deployment_url}
+                        className="rounded bg-violet-600 px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Sync Auth URL
                       </button>
                     </form>
 
