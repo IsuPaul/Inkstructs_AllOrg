@@ -5,8 +5,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireProfile } from "@/lib/auth";
 import { env } from "@/lib/env";
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
-import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
 export async function createPlatformCompany(_previousState: { error?: string; success?: boolean } | undefined, formData: FormData) {
@@ -131,10 +129,19 @@ export async function initializePlatformCompany(formData: FormData) {
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
     if (!healthy) throw new Error("The Supabase project is not healthy yet. Try initialization again shortly.");
-    const migrationsDir = path.join(process.cwd(), "supabase", "migrations");
-    const migrationFiles = (await fs.readdir(migrationsDir)).filter((file) => /^00(0[1-9]|1[01])_.+\.sql$/.test(file)).sort();
+    const githubHeaders = { Authorization: `Bearer ${env.githubToken()}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
+    const repoPath = env.customerTemplateRepo();
+    const branch = env.customerTemplateBranch();
+    const listingResponse = await fetch(`https://api.github.com/repos/${repoPath}/contents/supabase/migrations?ref=${encodeURIComponent(branch)}`, { headers: githubHeaders, cache: "no-store" });
+    const migrationListing = await listingResponse.json().catch(() => null) as Array<{ name?: string }> | { message?: string } | null;
+    if (!listingResponse.ok || !Array.isArray(migrationListing)) throw new Error(`Could not read customer migrations from GitHub: ${(migrationListing as { message?: string } | null)?.message || `HTTP ${listingResponse.status}`}`);
+    const migrationFiles = migrationListing.map((entry) => entry.name || "").filter((file) => /^00(0[1-9]|1[01])_.+\.sql$/.test(file)).sort();
+    if (migrationFiles.length !== 11) throw new Error(`Expected 11 customer migrations (0001–0011), found ${migrationFiles.length}.`);
     for (const file of migrationFiles) {
-      const query = await fs.readFile(path.join(migrationsDir, file), "utf8");
+      const fileResponse = await fetch(`https://api.github.com/repos/${repoPath}/contents/supabase/migrations/${encodeURIComponent(file)}?ref=${encodeURIComponent(branch)}`, { headers: githubHeaders, cache: "no-store" });
+      const filePayload = await fileResponse.json().catch(() => null) as { content?: string; message?: string } | null;
+      if (!fileResponse.ok || !filePayload?.content) throw new Error(`Could not read migration ${file}: ${filePayload?.message || `HTTP ${fileResponse.status}`}`);
+      const query = Buffer.from(filePayload.content.replace(/\s/g, ""), "base64").toString("utf8");
       const migrationResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/database/migrations`, { method: "POST", headers, body: JSON.stringify({ name: file.replace(/\.sql$/, ""), query }), cache: "no-store" });
       const migrationPayload = await migrationResponse.json().catch(() => null) as { message?: string } | null;
       if (!migrationResponse.ok) throw new Error(`Migration ${file} failed: ${migrationPayload?.message || `HTTP ${migrationResponse.status}`}`);

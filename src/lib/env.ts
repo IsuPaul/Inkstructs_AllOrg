@@ -20,4 +20,7 @@ export const env = {
   vercelTeamId: () => process.env.VERCEL_TEAM_ID,
   vercelGitRepo: () => process.env.VERCEL_GIT_REPO ?? "IsuPaul/Inkstructs_AllOrg",
   vercelGitBranch: () => process.env.VERCEL_GIT_BRANCH ?? "main",
+  githubToken: () => required("GITHUB_TOKEN", process.env.GITHUB_TOKEN),
+  customerTemplateRepo: () => process.env.CUSTOMER_TEMPLATE_REPO ?? "IsuPaul/Inkstructs_AllOrg",
+  customerTemplateBranch: () => process.env.CUSTOMER_TEMPLATE_BRANCH ?? "main",
 };
