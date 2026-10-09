@@ -9,11 +9,7 @@ export default function LoginPage() {
       subtitle="Use the email and password from your invite."
       footer={
         <>
-          Applying for a course?{" "}
-          <a href="/apply" className="text-ink-900 underline underline-offset-2">
-            Apply here
-          </a>
-          .
+        Need access? Contact your organization administrator.
         </>
       }
     >

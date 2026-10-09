@@ -28,8 +28,6 @@ export const ADMIN_ITEMS: NavItem[] = [
   { href: "/admin/instructors", label: "Instructors", icon: "instructors" },
   { href: "/admin/payments", label: "Payments", icon: "payments" },
   { href: "/admin/certificates", label: "Certificates", icon: "certificates" },
-  { href: "/admin/organizations", label: "Organizations", icon: "instructors" },
-  { href: "/admin/platform/companies", label: "Companies", icon: "instructors" },
   { href: "/profile", label: "Profile", icon: "profile" },
 ];
 

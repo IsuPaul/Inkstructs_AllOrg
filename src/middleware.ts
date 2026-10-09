@@ -5,14 +5,7 @@ import { ROLE_HOME, type UserRole } from "@/lib/types";
 
 const PUBLIC_PATHS = [
   "/",
-  "/courses",
-  "/about",
-  "/services",
-  "/contact",
-  "/embed",
-  "/apply",
   "/login",
-  "/verify",
   "/auth",
   "/forgot-password",
   "/api",
