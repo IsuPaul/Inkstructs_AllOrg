@@ -120,12 +120,13 @@ export async function initializePlatformCompany(formData: FormData) {
     const headers = { Authorization: `Bearer ${managementToken}`, "Content-Type": "application/json" };
     let healthy = false;
     for (let attempt = 0; attempt < 12; attempt += 1) {
-      const healthResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}/health`, { headers: { Authorization: `Bearer ${managementToken}` }, cache: "no-store" });
-      if (healthResponse.ok) {
-        const health = await healthResponse.json().catch(() => null) as { services?: Array<{ name?: string; status?: string }> } | null;
-        healthy = !health?.services || health.services.every((service) => !service.status || service.status.includes("HEALTHY") || service.status === "ACTIVE");
-        if (healthy) break;
+      const projectResponse = await fetch(`https://api.supabase.com/v1/projects/${encodeURIComponent(company.supabase_project_ref)}`, { headers: { Authorization: `Bearer ${managementToken}` }, cache: "no-store" });
+      const project = await projectResponse.json().catch(() => null) as { status?: string; message?: string } | null;
+      if (projectResponse.ok && project?.status === "ACTIVE_HEALTHY") {
+        healthy = true;
+        break;
       }
+      if (!projectResponse.ok && project?.message) throw new Error(`Could not check Supabase project status: ${project.message}`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
     if (!healthy) throw new Error("The Supabase project is not healthy yet. Try initialization again shortly.");
