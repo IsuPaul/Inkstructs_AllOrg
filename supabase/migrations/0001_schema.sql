@@ -7,7 +7,7 @@ create extension if not exists "pgcrypto";
 
 create type user_role as enum ('admin', 'instructor', 'student');
 
-create table profiles (
+create table if not exists profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
   email text not null unique,
@@ -22,7 +22,7 @@ create table profiles (
 
 create type application_status as enum ('pending', 'accepted', 'rejected', 'enrolled');
 
-create table applications (
+create table if not exists applications (
   id uuid primary key default gen_random_uuid(),
   full_name text not null,
   email text not null,
@@ -40,7 +40,7 @@ create table applications (
 
 create type drip_mode as enum ('none', 'by_date', 'by_completion');
 
-create table courses (
+create table if not exists courses (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   slug text not null unique,
@@ -57,7 +57,7 @@ create table courses (
   created_at timestamptz not null default now()
 );
 
-create table weeks (
+create table if not exists weeks (
   id uuid primary key default gen_random_uuid(),
   course_id uuid not null references courses(id) on delete cascade,
   week_number int not null check (week_number > 0),
@@ -66,7 +66,7 @@ create table weeks (
   unique (course_id, week_number)
 );
 
-create table modules (
+create table if not exists modules (
   id uuid primary key default gen_random_uuid(),
   week_id uuid not null references weeks(id) on delete cascade,
   day_number int not null check (day_number > 0),
@@ -78,7 +78,7 @@ create table modules (
 
 create type lesson_type as enum ('video', 'document', 'image', 'text', 'link', 'assignment', 'live');
 
-create table lessons (
+create table if not exists lessons (
   id uuid primary key default gen_random_uuid(),
   module_id uuid not null references modules(id) on delete cascade,
   position int not null default 0,
@@ -93,7 +93,7 @@ create table lessons (
 
 create type video_source as enum ('mux', 'external_link');
 
-create table assets (
+create table if not exists assets (
   id uuid primary key default gen_random_uuid(),
   lesson_id uuid not null references lessons(id) on delete cascade,
   storage_path text,               -- Supabase Storage path (documents/images)
@@ -111,7 +111,7 @@ create table assets (
 
 create type cohort_status as enum ('draft', 'open', 'running', 'completed');
 
-create table cohorts (
+create table if not exists cohorts (
   id uuid primary key default gen_random_uuid(),
   course_id uuid not null references courses(id) on delete cascade,
   name text not null,
@@ -124,13 +124,16 @@ create table cohorts (
   created_at timestamptz not null default now()
 );
 
-alter table applications
-  add constraint applications_course_fk foreign key (course_id) references courses(id),
-  add constraint applications_cohort_fk foreign key (cohort_id) references cohorts(id);
+do $$ begin
+  alter table applications
+    add constraint applications_course_fk foreign key (course_id) references courses(id),
+    add constraint applications_cohort_fk foreign key (cohort_id) references cohorts(id);
+exception when duplicate_object then null;
+end $$;
 
 create type instructor_cohort_role as enum ('lead', 'assistant');
 
-create table cohort_instructors (
+create table if not exists cohort_instructors (
   cohort_id uuid not null references cohorts(id) on delete cascade,
   instructor_id uuid not null references profiles(id) on delete cascade,
   role instructor_cohort_role not null default 'lead',
@@ -139,7 +142,7 @@ create table cohort_instructors (
 
 create type enrollment_status as enum ('pending_payment', 'invited', 'active', 'completed', 'paused', 'refunded');
 
-create table enrollments (
+create table if not exists enrollments (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references profiles(id) on delete cascade,
   cohort_id uuid not null references cohorts(id) on delete cascade,
@@ -150,7 +153,7 @@ create table enrollments (
   unique (student_id, cohort_id)
 );
 
-create table live_sessions (
+create table if not exists live_sessions (
   id uuid primary key default gen_random_uuid(),
   cohort_id uuid not null references cohorts(id) on delete cascade,
   title text not null,
@@ -165,7 +168,7 @@ create table live_sessions (
 
 create type progress_status as enum ('not_started', 'in_progress', 'complete');
 
-create table lesson_progress (
+create table if not exists lesson_progress (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references profiles(id) on delete cascade,
   lesson_id uuid not null references lessons(id) on delete cascade,
@@ -173,7 +176,7 @@ create table lesson_progress (
   unique (student_id, lesson_id)
 );
 
-create table module_progress (
+create table if not exists module_progress (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references profiles(id) on delete cascade,
   module_id uuid not null references modules(id) on delete cascade,
@@ -186,7 +189,7 @@ create table module_progress (
 
 create type submission_status as enum ('submitted', 'graded', 'resubmit');
 
-create table submissions (
+create table if not exists submissions (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references profiles(id) on delete cascade,
   lesson_id uuid not null references lessons(id) on delete cascade,
@@ -204,7 +207,7 @@ create table submissions (
 
 create type payment_status as enum ('pending', 'paid', 'failed', 'refunded');
 
-create table payments (
+create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
   enrollment_id uuid not null references enrollments(id) on delete cascade,
   provider text not null default 'paystack',
@@ -217,7 +220,7 @@ create table payments (
   created_at timestamptz not null default now()
 );
 
-create table coupons (
+create table if not exists coupons (
   id uuid primary key default gen_random_uuid(),
   code text not null unique,
   percent_off int check (percent_off between 1 and 100),
@@ -230,7 +233,7 @@ create table coupons (
 
 -- ========== Certificates ==========
 
-create table certificates (
+create table if not exists certificates (
   id uuid primary key default gen_random_uuid(),
   enrollment_id uuid not null references enrollments(id) on delete cascade,
   student_id uuid not null references profiles(id) on delete cascade,
@@ -245,7 +248,7 @@ create table certificates (
 
 -- ========== Communication ==========
 
-create table announcements (
+create table if not exists announcements (
   id uuid primary key default gen_random_uuid(),
   cohort_id uuid not null references cohorts(id) on delete cascade,
   author_id uuid not null references profiles(id),
@@ -256,19 +259,20 @@ create table announcements (
 
 -- ========== Indexes ==========
 
-create index idx_weeks_course on weeks(course_id);
-create index idx_modules_week on modules(week_id);
-create index idx_lessons_module on lessons(module_id);
-create index idx_assets_lesson on assets(lesson_id);
-create index idx_cohorts_course on cohorts(course_id);
-create index idx_enrollments_student on enrollments(student_id);
-create index idx_enrollments_cohort on enrollments(cohort_id);
-create index idx_lesson_progress_student on lesson_progress(student_id);
-create index idx_lesson_progress_lesson on lesson_progress(lesson_id);
-create index idx_module_progress_student on module_progress(student_id);
-create index idx_module_progress_module on module_progress(module_id);
-create index idx_payments_enrollment on payments(enrollment_id);
-create index idx_applications_status on applications(status);
-create index idx_cohort_instructors_instructor on cohort_instructors(instructor_id);
-create index idx_announcements_cohort on announcements(cohort_id);
-create index idx_live_sessions_cohort on live_sessions(cohort_id);
+create index if not exists idx_weeks_course on weeks(course_id);
+create index if not exists idx_modules_week on modules(week_id);
+create index if not exists idx_lessons_module on lessons(module_id);
+create index if not exists idx_assets_lesson on assets(lesson_id);
+create index if not exists idx_cohorts_course on cohorts(course_id);
+create index if not exists idx_enrollments_student on enrollments(student_id);
+create index if not exists idx_enrollments_cohort on enrollments(cohort_id);
+create index if not exists idx_lesson_progress_student on lesson_progress(student_id);
+create index if not exists idx_lesson_progress_lesson on lesson_progress(lesson_id);
+create index if not exists idx_module_progress_student on module_progress(student_id);
+create index if not exists idx_module_progress_module on module_progress(module_id);
+create index if not exists idx_payments_enrollment on payments(enrollment_id);
+create index if not exists idx_applications_status on applications(status);
+create index if not exists idx_cohort_instructors_instructor on cohort_instructors(instructor_id);
+create index if not exists idx_announcements_cohort on announcements(cohort_id);
+create index if not exists idx_live_sessions_cohort on live_sessions(cohort_id);
+

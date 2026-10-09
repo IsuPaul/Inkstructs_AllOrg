@@ -8,7 +8,7 @@
 -- functions that manually shape what's returned (get_quiz_for_student) and
 -- do the grading server-side (submit_quiz_attempt).
 
-create table quizzes (
+create table if not exists quizzes (
   id uuid primary key default gen_random_uuid(),
   week_id uuid not null references weeks(id) on delete cascade unique, -- one quiz per week
   title text not null,
@@ -18,14 +18,14 @@ create table quizzes (
   updated_at timestamptz not null default now()
 );
 
-create table quiz_questions (
+create table if not exists quiz_questions (
   id uuid primary key default gen_random_uuid(),
   quiz_id uuid not null references quizzes(id) on delete cascade,
   prompt text not null,
   position int not null default 0
 );
 
-create table quiz_options (
+create table if not exists quiz_options (
   id uuid primary key default gen_random_uuid(),
   question_id uuid not null references quiz_questions(id) on delete cascade,
   text text not null,
@@ -33,7 +33,7 @@ create table quiz_options (
   position int not null default 0
 );
 
-create table quiz_attempts (
+create table if not exists quiz_attempts (
   id uuid primary key default gen_random_uuid(),
   quiz_id uuid not null references quizzes(id) on delete cascade,
   student_id uuid not null references profiles(id) on delete cascade,
@@ -43,18 +43,18 @@ create table quiz_attempts (
   unique (quiz_id, student_id) -- resubmitting overwrites the previous attempt
 );
 
-create table quiz_responses (
+create table if not exists quiz_responses (
   id uuid primary key default gen_random_uuid(),
   attempt_id uuid not null references quiz_attempts(id) on delete cascade,
   question_id uuid not null references quiz_questions(id) on delete cascade,
   selected_option_id uuid references quiz_options(id)
 );
 
-create index idx_quiz_questions_quiz on quiz_questions(quiz_id);
-create index idx_quiz_options_question on quiz_options(question_id);
-create index idx_quiz_attempts_quiz on quiz_attempts(quiz_id);
-create index idx_quiz_attempts_student on quiz_attempts(student_id);
-create index idx_quiz_responses_attempt on quiz_responses(attempt_id);
+create index if not exists idx_quiz_questions_quiz on quiz_questions(quiz_id);
+create index if not exists idx_quiz_options_question on quiz_options(question_id);
+create index if not exists idx_quiz_attempts_quiz on quiz_attempts(quiz_id);
+create index if not exists idx_quiz_attempts_student on quiz_attempts(student_id);
+create index if not exists idx_quiz_responses_attempt on quiz_responses(attempt_id);
 
 alter table quizzes enable row level security;
 alter table quiz_questions enable row level security;
@@ -261,3 +261,4 @@ begin
   return v_quiz_id;
 end;
 $$;
+
