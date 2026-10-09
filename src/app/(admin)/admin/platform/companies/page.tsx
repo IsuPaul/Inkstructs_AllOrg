@@ -170,17 +170,6 @@ export default async function PlatformCompaniesPage() {
                       </button>
                     </form>
 
-                    <form action={submitInitializeCompany}>
-                      <input type="hidden" name="id" value={company.id} />
-                      <button
-                        type="submit"
-                        disabled={!company.supabase_project_ref || !company.vercel_deployment_url}
-                        className="rounded bg-emerald-600 px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Initialize customer
-                      </button>
-                    </form>
-
                     <form action={submitSyncAuthUrl}>
                       <input type="hidden" name="id" value={company.id} />
                       <button
@@ -189,6 +178,17 @@ export default async function PlatformCompaniesPage() {
                         className="rounded bg-violet-600 px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Sync Auth URL
+                      </button>
+                    </form>
+
+                    <form action={submitInitializeCompany}>
+                      <input type="hidden" name="id" value={company.id} />
+                      <button
+                        type="submit"
+                        disabled={!company.supabase_project_ref || !company.vercel_deployment_url}
+                        className="rounded bg-emerald-600 px-3 py-2 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Initialize customer
                       </button>
                     </form>
 
