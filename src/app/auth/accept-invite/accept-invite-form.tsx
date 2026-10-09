@@ -30,14 +30,9 @@ export function AcceptInviteForm() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return setError("Something went wrong. Please try signing in instead.");
 
-      const { data: memberships } = await supabase.from("organization_members").select("organization_id").eq("user_id", userData.user.id);
-      if (memberships && memberships.length > 0) {
-        router.push("/organizations");
-      } else {
-        const { data: profile } = await supabase.from("profiles").select("role").eq("id", userData.user.id).single();
-        const role = (profile?.role ?? "student") as UserRole;
-        router.push(ROLE_HOME[role]);
-      }
+      const { data: profile } = await supabase.from("profiles").select("role").eq("id", userData.user.id).single();
+      const role = (profile?.role ?? "student") as UserRole;
+      router.push(ROLE_HOME[role]);
       router.refresh();
     });
   }

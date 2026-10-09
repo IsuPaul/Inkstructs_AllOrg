@@ -5,24 +5,12 @@ import { deploymentConfig } from "@/lib/deployment-config";
 
 export const metadata: Metadata = {
   title: deploymentConfig.name,
-  description:
-    "Instructor-led training in web development, AI & automation, and Python.",
+  description: "Instructor-led training in web development, AI & automation, and Python.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="en"
-      style={
-        {
-          "--tenant-accent": deploymentConfig.primaryColor,
-        } as CSSProperties
-      }
-    >
+    <html lang="en" style={{ "--tenant-accent": deploymentConfig.primaryColor } as CSSProperties}>
       <body>{children}</body>
     </html>
   );
