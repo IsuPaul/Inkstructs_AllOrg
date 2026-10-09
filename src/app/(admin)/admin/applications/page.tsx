@@ -33,7 +33,7 @@ export default async function ApplicationsPage() {
       <div className="p-5 sm:p-8">
         <div className={applications && applications.length > 0 ? "rounded-[var(--radius-md)] border border-border bg-surface px-5 shadow-[var(--shadow-xs)]" : ""}>
           {!applications || applications.length === 0 ? (
-            <EmptyState icon={Inbox} title="No applications yet" description="New applications from /apply will show up here for review." />
+          <EmptyState icon={Inbox} title="No applications yet" description="New applications will show up here for review." />
           ) : (
             /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
             applications.map((a: any) => (

@@ -64,8 +64,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (pathname.startsWith("/org/") && pathname.endsWith("/enter")) return response;
-
   // One profile lookup, used both for role-gating below AND forwarded to
   // every Server Component via headers, instead of each layout fetching it
   // again itself.

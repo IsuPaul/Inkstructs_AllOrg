@@ -55,7 +55,6 @@ export async function setCoursePublished(courseId: string, published: boolean) {
   const { error } = await supabase.from("courses").update({ is_published: published }).eq("id", courseId);
   if (error) return { error: "Couldn't update the course." };
   revalidatePath("/admin/courses");
-  revalidatePath("/apply");
   revalidatePath("/");
   return { success: true };
 }

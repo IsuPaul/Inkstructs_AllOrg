@@ -137,7 +137,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* The customer landing page is intentionally a single viewport. */
+/* Customer deployments use a focused, single-screen landing page. */
 .customer-landing { height: calc(100dvh - 76px); overflow: hidden; }
 .customer-landing .home-hero { height: 100%; min-height: 0; padding: 28px 0; border-bottom: 0; }
 .customer-landing .hero-grid { height: 100%; gap: 48px; }
